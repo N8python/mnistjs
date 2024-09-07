@@ -1,0 +1,9 @@
+import { comp as _comp } from "@thi.ng/compose/comp";
+import { ensureTransducer } from "./ensure.js";
+function comp(...fns) {
+  fns = fns.map(ensureTransducer);
+  return _comp.apply(null, fns);
+}
+export {
+  comp
+};

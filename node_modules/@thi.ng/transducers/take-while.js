@@ -1,0 +1,17 @@
+import { compR } from "./compr.js";
+import { __iter } from "./iterator.js";
+import { reduced } from "./reduced.js";
+function takeWhile(...args) {
+  return __iter(takeWhile, args) || ((rfn) => {
+    const r = rfn[2];
+    const pred = args[0];
+    let ok = true;
+    return compR(
+      rfn,
+      (acc, x) => (ok = ok && pred(x)) ? r(acc, x) : reduced(acc)
+    );
+  });
+}
+export {
+  takeWhile
+};

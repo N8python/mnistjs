@@ -1,0 +1,13 @@
+import { mix } from "@thi.ng/math/mix";
+import { interpolate } from "./interpolate.js";
+function interpolateLinear(n, src) {
+  return interpolate(
+    (chunk, t) => mix(...chunk, t),
+    2,
+    n,
+    src
+  );
+}
+export {
+  interpolateLinear
+};

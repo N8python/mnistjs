@@ -1,0 +1,79 @@
+import { illegalArgs } from "@thi.ng/errors/illegal-arguments";
+import { add } from "./add.js";
+import { iterator1 } from "./iterator.js";
+import { map } from "./map.js";
+import { range } from "./range.js";
+import { range2d } from "./range2d.js";
+import { transduce } from "./transduce.js";
+import { zip } from "./zip.js";
+const buildKernel1d = (weights, w) => {
+  const w2 = w >> 1;
+  return [...zip(weights, range(-w2, w2 + 1))];
+};
+const buildKernel2d = (weights, w, h = w) => {
+  const w2 = w >> 1;
+  const h2 = h >> 1;
+  return [...zip(weights, range2d(-w2, w2 + 1, -h2, h2 + 1))];
+};
+const __kernelLookup1d = (src, x, width, wrap, border) => wrap ? ({ 0: w, 1: ox }) => {
+  const xx = x < -ox ? width + ox : x >= width - ox ? ox - 1 : x + ox;
+  return w * src[xx];
+} : ({ 0: w, 1: ox }) => {
+  return x < -ox || x >= width - ox ? border : w * src[x + ox];
+};
+const __kernelLookup2d = (src, x, y, width, height, wrap, border) => wrap ? ({ 0: w, 1: { 0: ox, 1: oy } }) => {
+  const xx = x < -ox ? width + ox : x >= width - ox ? ox - 1 : x + ox;
+  const yy = y < -oy ? height + oy : y >= height - oy ? oy - 1 : y + oy;
+  return w * src[yy * width + xx];
+} : ({ 0: w, 1: { 0: ox, 1: oy } }) => {
+  return x < -ox || y < -oy || x >= width - ox || y >= height - oy ? border : w * src[(y + oy) * width + x + ox];
+};
+const __kernelError = () => illegalArgs(`no kernel or kernel config`);
+function convolve1d(opts, indices) {
+  if (indices) {
+    return iterator1(convolve1d(opts), indices);
+  }
+  const { src, width } = opts;
+  const wrap = opts.wrap !== false;
+  const border = opts.border || 0;
+  const rfn = opts.reduce || add;
+  let kernel = opts.kernel;
+  if (!kernel) {
+    !(opts.weights && opts.kwidth) && __kernelError();
+    kernel = buildKernel1d(opts.weights, opts.kwidth);
+  }
+  return map(
+    (p) => transduce(
+      map(__kernelLookup1d(src, p, width, wrap, border)),
+      rfn(),
+      kernel
+    )
+  );
+}
+function convolve2d(opts, indices) {
+  if (indices) {
+    return iterator1(convolve2d(opts), indices);
+  }
+  const { src, width, height } = opts;
+  const wrap = opts.wrap !== false;
+  const border = opts.border || 0;
+  const rfn = opts.reduce || add;
+  let kernel = opts.kernel;
+  if (!kernel) {
+    !(opts.weights && opts.kwidth && opts.kheight) && __kernelError();
+    kernel = buildKernel2d(opts.weights, opts.kwidth, opts.kheight);
+  }
+  return map(
+    (p) => transduce(
+      map(__kernelLookup2d(src, p[0], p[1], width, height, wrap, border)),
+      rfn(),
+      kernel
+    )
+  );
+}
+export {
+  buildKernel1d,
+  buildKernel2d,
+  convolve1d,
+  convolve2d
+};

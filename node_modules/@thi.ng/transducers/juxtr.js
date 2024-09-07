@@ -1,0 +1,80 @@
+import { isReduced, reduced, unreduced } from "./reduced.js";
+function juxtR(...rs) {
+  let [a, b, c] = rs;
+  const n = rs.length;
+  switch (n) {
+    case 1: {
+      const r = a[2];
+      return [
+        () => [a[0]()],
+        (acc) => [a[1](acc[0])],
+        (acc, x) => {
+          const aa1 = r(acc[0], x);
+          if (isReduced(aa1)) {
+            return reduced([unreduced(aa1)]);
+          }
+          return [aa1];
+        }
+      ];
+    }
+    case 2: {
+      const ra = a[2];
+      const rb = b[2];
+      return [
+        () => [a[0](), b[0]()],
+        (acc) => [a[1](acc[0]), b[1](acc[1])],
+        (acc, x) => {
+          const aa1 = ra(acc[0], x);
+          const aa2 = rb(acc[1], x);
+          if (isReduced(aa1) || isReduced(aa2)) {
+            return reduced([unreduced(aa1), unreduced(aa2)]);
+          }
+          return [aa1, aa2];
+        }
+      ];
+    }
+    case 3: {
+      const ra = a[2];
+      const rb = b[2];
+      const rc = c[2];
+      return [
+        () => [a[0](), b[0](), c[0]()],
+        (acc) => [a[1](acc[0]), b[1](acc[1]), c[1](acc[2])],
+        (acc, x) => {
+          const aa1 = ra(acc[0], x);
+          const aa2 = rb(acc[1], x);
+          const aa3 = rc(acc[2], x);
+          if (isReduced(aa1) || isReduced(aa2) || isReduced(aa3)) {
+            return reduced([
+              unreduced(aa1),
+              unreduced(aa2),
+              unreduced(aa3)
+            ]);
+          }
+          return [aa1, aa2, aa3];
+        }
+      ];
+    }
+    default:
+      return [
+        () => rs.map((r) => r[0]()),
+        (acc) => rs.map((r, i) => r[1](acc[i])),
+        (acc, x) => {
+          let done = false;
+          const res = [];
+          for (let i = 0; i < n; i++) {
+            let a2 = rs[i][2](acc[i], x);
+            if (isReduced(a2)) {
+              done = true;
+              a2 = unreduced(a2);
+            }
+            res[i] = a2;
+          }
+          return done ? reduced(res) : res;
+        }
+      ];
+  }
+}
+export {
+  juxtR
+};

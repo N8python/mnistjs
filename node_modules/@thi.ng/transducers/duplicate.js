@@ -1,0 +1,18 @@
+import { isIterable } from "@thi.ng/checks/is-iterable";
+import { compR } from "./compr.js";
+import { iterator } from "./iterator.js";
+import { isReduced } from "./reduced.js";
+function duplicate(n = 1, src) {
+  return isIterable(src) ? iterator(duplicate(n), src) : (rfn) => {
+    const r = rfn[2];
+    return compR(rfn, (acc, x) => {
+      for (let i = n; i >= 0 && !isReduced(acc); i--) {
+        acc = r(acc, x);
+      }
+      return acc;
+    });
+  };
+}
+export {
+  duplicate
+};

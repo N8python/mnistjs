@@ -1,0 +1,16 @@
+import { compR } from "./compr.js";
+import { __iter } from "./iterator.js";
+function dropWhile(...args) {
+  return __iter(dropWhile, args) || ((rfn) => {
+    const r = rfn[2];
+    const pred = args[0];
+    let ok = true;
+    return compR(
+      rfn,
+      (acc, x) => (ok = ok && pred(x)) ? acc : r(acc, x)
+    );
+  });
+}
+export {
+  dropWhile
+};

@@ -1,0 +1,10 @@
+import { ensureArray } from "@thi.ng/arrays/ensure-array";
+import { isArray } from "@thi.ng/checks/is-array";
+import { isString } from "@thi.ng/checks/is-string";
+import { concat } from "./concat.js";
+function dup(x) {
+  return isString(x) ? x + x : isArray(x) ? x.concat(x) : (x = ensureArray(x), concat(x, x));
+}
+export {
+  dup
+};
