@@ -1,0 +1,1 @@
+Mnist training in 500 lines of javascript, 20000 images/sec on one cpu core. download the code and `npm install`, or simply download the zip file which comes with all neccessary dependencies neatly compressed.
